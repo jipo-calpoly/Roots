@@ -47,8 +47,8 @@ class FirstViewController: UIViewController {
             guard let response = response else {return}
             guard let primaryRoute = response.routes.first else { return }
             
+            self.mapView.removeOverlays(self.mapView.overlays)
             self.mapView.addOverlay(primaryRoute.polyline)
-            
             self.locationManager.monitoredRegions.forEach({self.locationManager.stopMonitoring(for: $0)})
             
             self.steps = primaryRoute.steps
