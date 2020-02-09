@@ -10,16 +10,10 @@ import UIKit
 import MapKit
 import CoreLocation
 
-class SecondViewController: UIViewController{
-    override func viewDidLoad() {
-        //        super.viewDidLoad()
-    }
-    
-}
-
 
 class RouteViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
     //class SecondViewController: UIViewController{
+    @IBOutlet weak var searchTextField: UITextField!
     var destination: MKMapItem?
     @IBOutlet weak var routeMap: MKMapView!
     var locationManager: CLLocationManager = CLLocationManager()
@@ -30,6 +24,11 @@ class RouteViewController: UIViewController, MKMapViewDelegate, CLLocationManage
         userLocation = locations[0]
         self.getDirections()
         
+    }
+    
+    @IBAction func goButtonTouched(_ sender: Any) {
+        searchTextField.resignFirstResponder()
+        print(searchTextField.text)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
