@@ -10,7 +10,6 @@ import UIKit
 import MapKit
 import CoreLocation
 
-
 class RouteViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
     //class SecondViewController: UIViewController{
     @IBOutlet weak var searchTextField: UITextField!
@@ -18,22 +17,40 @@ class RouteViewController: UIViewController, MKMapViewDelegate, CLLocationManage
     @IBOutlet weak var routeMap: MKMapView!
     var locationManager: CLLocationManager = CLLocationManager()
     var userLocation: CLLocation?
+    let regionRadius: Double = 1000
     
     func locationManager(_ manager: CLLocationManager,
                          didUpdateLocations locations: [CLLocation]) {
         userLocation = locations[0]
         self.getDirections()
-        
     }
     
     @IBAction func goButtonTouched(_ sender: Any) {
         searchTextField.resignFirstResponder()
         print(searchTextField.text)
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(searchTextField.text!, completionHandler: {(placemarks, error) -> Void in
+        if((error) != nil){
+           print("Error", error)
+        }
+        if let placemark = placemarks?.first {
+            
+           let coordinates:CLLocationCoordinate2D = placemark.location!.coordinate
+            
+            self.destination = MKMapItem(placemark: MKPlacemark(coordinate: coordinates, addressDictionary: placemark.addressDictionary as! [String : Any]))
+            
+            self.getDirections()
+       }
+            
+            
+            //self.getDirections();
+         })
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print(error.localizedDescription)
     }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         routeMap.delegate = self
@@ -41,7 +58,16 @@ class RouteViewController: UIViewController, MKMapViewDelegate, CLLocationManage
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.delegate = self
         locationManager.requestLocation()
+        let locationManager = CLLocationManager()
+        self.locationManager.requestAlwaysAuthorization()
+        self.locationManager.requestWhenInUseAuthorization()
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+            locationManager.startUpdatingLocation()
+        }
     }
+    
     func getDirections() {
         
         let request = MKDirections.Request()
@@ -94,5 +120,22 @@ class RouteViewController: UIViewController, MKMapViewDelegate, CLLocationManage
         renderer.strokeColor = UIColor.blue
         renderer.lineWidth = 5.0
         return renderer
+    }
+    
+    func getCoordinate( addressString : String,
+            completionHandler: @escaping(CLLocationCoordinate2D, NSError?) -> Void ) {
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(addressString) { (placemarks, error) in
+            if error == nil {
+                if let placemark = placemarks?[0] {
+                    let location = placemark.location!
+                        
+                    completionHandler(location.coordinate, nil)
+                    return
+                }
+            }
+                
+            completionHandler(kCLLocationCoordinate2DInvalid, error as NSError?)
+        }
     }
 }
